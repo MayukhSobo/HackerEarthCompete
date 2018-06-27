@@ -1,0 +1,112 @@
+---
+title: "Building Damage EDA"
+output: html_notebook
+---
+
+This EDA reveals all the internals of the building damage due to EarthQuake. It's a multiclass classification problem and we strive to get multiple inferences form the EDA so that it can help in classification later on.
+
+```{r}
+library(ggplot2)
+library(ggthemes)
+library(dplyr)
+```
+
+## Load the dataset
+
+```{r}
+data <- read.csv('../data/train_data.csv')
+```
+
+## Univaritate Analysis
+
+There are very few univariate variables that we can relate with the target varible. Some of the variable are as follows
+
+  - age_building
+  - count_floors_pre_eq
+  - count_floors_post_eq
+  - plinth_area_sq_ft
+  - height_ft_pre_eq
+  - height_ft_post_eq
+
+```{r}
+data %>%
+  filter((data$age_building <= 250)) %>%
+  ggplot(aes(x = age_building)) + 
+    #geom_histogram(bins = 25, aes(y = ..density..), fill='deeppink', color='black', alpha=0.25) +
+    geom_density(bw = 2, aes(fill=damage_grade), alpha=0.2)
+```
+
+```{r}
+data %>%
+  ggplot(aes(x = count_floors_pre_eq)) + 
+    #geom_histogram(bins = 25, aes(y = ..density..), fill='deeppink', color='black', alpha=0.25) +
+    geom_density(bw = 2, aes(fill=damage_grade), alpha=0.2)
+```
+
+```{r}
+data %>%
+  ggplot(aes(x = count_floors_post_eq)) + 
+    #geom_histogram(bins = 25, aes(y = ..density..), fill='deeppink', color='black', alpha=0.25) +
+    geom_density(bw = 2, aes(fill=damage_grade), alpha=0.2)
+```
+
+
+```{r}
+data %>%
+  ggplot(aes(x = plinth_area_sq_ft)) + 
+    #geom_histogram(bins = 25, aes(y = ..density..), fill='deeppink', color='black', alpha=0.25) +
+    geom_density(bw = 100, aes(fill=damage_grade), alpha=0.2)
+```
+
+```{r}
+data %>%
+  ggplot(aes(x = height_ft_pre_eq)) + 
+    #geom_histogram(bins = 25, aes(y = ..density..), fill='deeppink', color='black', alpha=0.25) +
+    geom_density(bw = 10, aes(fill=damage_grade), alpha=0.2)
+```
+
+```{r}
+data %>%
+  ggplot(aes(x = height_ft_post_eq)) + 
+    #geom_histogram(bins = 25, aes(y = ..density..), fill='deeppink', color='black', alpha=0.25) +
+    geom_density(bw = 8, aes(fill=damage_grade), alpha=0.2)
+```
+
+## Bivariate Analysis
+
+First it is interesting to see if there is any bivariate relationships that actually separates the class labels. The variables that seems to be important for the analysis are the following
+
+ - district_id
+ - roof_type
+ - foundation_type
+ 
+```{r fig.height=16, fig.width=10}
+data %>%
+  group_by(district_id, damage_grade) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = damage_grade, y = n)) + 
+  geom_bar(stat="identity") + facet_wrap(~district_id, ncol = 3) + theme_hc()
+```
+
+We can see that the some districts are able to separate the damage levels really well. For example district 51, 47, 40, 38 etc. are able to split the damage grade really well as they are more centered towards ```Grade 2 or Grade 3``` but District 36, 38 etc are more gravitaded towards ```Grade 4 or Grade 5```
+
+```{r fig.width=10}
+data %>%
+  group_by(roof_type, damage_grade) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = damage_grade, y = n)) + 
+  geom_bar(stat="identity") + facet_wrap(~roof_type, ncol = 3) + theme_hc()
+```
+
+Rooftop seemed very promising. We can see that light structured roofs are prone to more damage mostly in the category of Grade 1 or Grade 2 while RCC roofs hardly went through Grade 5 damage.
+
+```{r fig.width=10}
+data %>%
+  group_by(foundation_type, damage_grade) %>%
+  summarise(n = n()) %>%
+  ggplot(aes(x = damage_grade, y = n)) + 
+  geom_bar(stat="identity") + facet_wrap(~foundation_type, ncol = 3) + theme_hc()
+```
+
+
+Foundation, as it should have very high importance on the damage grades.
