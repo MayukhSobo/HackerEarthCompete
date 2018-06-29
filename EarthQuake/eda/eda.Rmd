@@ -79,6 +79,7 @@ First it is interesting to see if there is any bivariate relationships that actu
  - district_id
  - roof_type
  - foundation_type
+ - count_families
  
 ```{r fig.height=16, fig.width=10}
 data %>%
@@ -109,4 +110,14 @@ data %>%
 ```
 
 
-Foundation, as it should have very high importance on the damage grades.
+Foundation, as it should have very high importance on the damage grades too.
+
+```{r}
+data %>%
+  group_by(damage_grade) %>%
+  summarise(mean_age = mean(age_building)) %>%
+  ggplot(aes(x = damage_grade, y = mean_age)) +
+    geom_bar(stat = 'identity')
+```
+
+We can see that age of the building is not playing any important role as it should be.
